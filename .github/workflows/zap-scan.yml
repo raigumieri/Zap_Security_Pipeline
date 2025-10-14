@@ -1,0 +1,44 @@
+name: OWASP ZAP Security Scan
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  zap_scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run OWASP ZAP baseline scan
+        uses: zaproxy/action-baseline@v0.9.0
+        with:
+          target: "http://testphp.vulnweb.com"
+          format: html
+          cmd_options: "-t 120"
+        continue-on-error: true
+
+      - name: Check for high or critical alerts
+        run: |
+          HIGH_COUNT=$(grep -o "High" report_html.html | wc -l)
+          CRITICAL_COUNT=$(grep -o "Critical" report_html.html | wc -l)
+          TOTAL=$(($HIGH_COUNT + $CRITICAL_COUNT))
+
+          echo "High Alerts: $HIGH_COUNT"
+          echo "Critical Alerts: $CRITICAL_COUNT"
+          echo "Total Severe Alerts: $TOTAL"
+
+          if [ "$TOTAL" -gt 0 ]; then
+            echo "❌ Falhas críticas ou altas detectadas. Pipeline será interrompido."
+            exit 1
+          else
+            echo "✅ Nenhuma vulnerabilidade crítica encontrada."
+          fi
+
+      - name: Upload ZAP HTML Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-report
+          path: report_html.html
