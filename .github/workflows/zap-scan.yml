@@ -1,4 +1,4 @@
-name: OWASP ZAP Security Scan
+name: OWASP ZAP Full Security Scan
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  zap_scan:
+  zap_full_scan:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -16,26 +16,15 @@ jobs:
         run: |
           sudo chmod -R 777 ${{ github.workspace }}
 
-      - name: Run OWASP ZAP baseline scan
-        id: zap_scan
-        uses: zaproxy/action-baseline@v0.9.0
+      - name: Run OWASP ZAP full scan
+        id: zap_full_scan
+        uses: zaproxy/action-full-scan@v0.5.0
         with:
           target: "https://testphp.vulnweb.com"
-          cmd_options: "-m 1 --autooff"  
-        continue-on-error: true
-
-      - name: Check for high or critical alerts (não interrompe o pipeline)
-        run: |
-          echo "Verificando vulnerabilidades críticas no relatório..."
-          if grep -q -E "High|Critical" report_html.html; then
-            echo "⚠️ Falhas críticas detectadas! O relatório será salvo mesmo assim."
-          else
-            echo "✅ Nenhuma vulnerabilidade crítica encontrada."
-          fi
-
+          cmd_options: "-m 5 --autooff"  
 
       - name: Upload ZAP HTML Report
         uses: actions/upload-artifact@v4
         with:
-          name: zap-report
-          path: report_html.html
+          name: zap-full-report
+          path: report.html
