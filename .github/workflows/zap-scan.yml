@@ -21,7 +21,7 @@ jobs:
         uses: zaproxy/action-baseline@v0.9.0
         with:
           target: "https://testphp.vulnweb.com"
-          cmd_options: "-m 1 --autooff"   
+          cmd_options: "-m 1 -J report_json.json -w report_md.md -r report_html.html"   
         continue-on-error: true
 
       - name: Check for high or critical alerts (não interrompe o pipeline)
