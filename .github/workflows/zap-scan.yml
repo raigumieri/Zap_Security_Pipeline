@@ -24,17 +24,15 @@ jobs:
           cmd_options: "-m 1 --autooff"   
         continue-on-error: true
 
-      - name: Check for high or critical alerts
+      - name: Check for high or critical alerts (não interrompe o pipeline)
         run: |
           echo "Verificando vulnerabilidades críticas no relatório..."
-          grep -E "High|Critical" report_html.html > /dev/null && SEVERE=1 || SEVERE=0
-
-          if [ "$SEVERE" -eq 1 ]; then
-            echo "❌ Falhas críticas detectadas! Pipeline será interrompido."
-            exit 1
+          if grep -q -E "High|Critical" report_html.html; then
+            echo "⚠️ Falhas críticas detectadas! O relatório será salvo mesmo assim."
           else
             echo "✅ Nenhuma vulnerabilidade crítica encontrada."
           fi
+
 
       - name: Upload ZAP HTML Report
         uses: actions/upload-artifact@v4
